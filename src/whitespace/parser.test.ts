@@ -60,7 +60,7 @@ describe("parse", () => {
   it("records source ranges covering the whole instruction", () => {
     const source = `x${ws("SSSTL")}yy${ws("LLL")}`;
     const [push, end] = parse(source).instructions;
-    expect([push.from, push.to]).toEqual([1, 6]);
+    expect([push.from, push.paramFrom, push.to]).toEqual([1, 3, 6]);
     expect([end.from, end.to]).toEqual([8, 11]);
   });
 

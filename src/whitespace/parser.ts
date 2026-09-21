@@ -5,6 +5,8 @@ export type SourceRange = { from: number; to: number };
 
 export type ParsedInstruction = SourceRange & {
   def: InstructionDef;
+  /** Offset of the first token of the parameter, if the instruction takes one. */
+  paramFrom?: number;
   /** Present for `number` params. */
   value?: bigint;
   /** Present for `label` params, as a string of S and T (may be empty). */
@@ -67,6 +69,7 @@ export function parse(source: string): Program {
     const parsed: ParsedInstruction = { def, from: tokens[start].offset, to: 0 };
 
     if (def.param) {
+      parsed.paramFrom = tokens[pos]?.offset;
       let bits = "";
       while (pos < tokens.length && tokens[pos].token !== "L") bits += tokens[pos++].token;
       if (pos >= tokens.length) {
