@@ -1,32 +1,42 @@
 import type { EditorView } from "@codemirror/view";
-import { ask, open, save } from "@tauri-apps/plugin-dialog";
+import { message, open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { resetDocument } from "../editor/Editor";
-import { useAppStore } from "../store";
+import { fileNameOf, useAppStore } from "../store";
 
 const filters = [
   { name: "Whitespace", extensions: ["ws"] },
   { name: "All Files", extensions: ["*"] },
 ];
 
-async function confirmDiscard(): Promise<boolean> {
-  if (!useAppStore.getState().isDirty) return true;
-  return ask("You have unsaved changes. Discard them?", {
+const saveLabel = "Save";
+const dontSaveLabel = "Don't Save";
+
+/** Resolves to `true` when it is safe to drop the current document. */
+export async function confirmUnsavedChanges(view: EditorView): Promise<boolean> {
+  const { isDirty, filePath } = useAppStore.getState();
+  if (!isDirty) return true;
+
+  const result = await message(`Do you want to save the changes you made to ${fileNameOf(filePath)}?`, {
     title: "Whitecode",
     kind: "warning",
-    okLabel: "Discard",
-    cancelLabel: "Cancel",
+    buttons: { yes: saveLabel, no: dontSaveLabel, cancel: "Cancel" },
   });
+  if (result === saveLabel) {
+    await saveFile(view);
+    return !useAppStore.getState().isDirty;
+  }
+  return result === dontSaveLabel;
 }
 
 export async function newFile(view: EditorView) {
-  if (!(await confirmDiscard())) return;
+  if (!(await confirmUnsavedChanges(view))) return;
   resetDocument(view, "");
   useAppStore.setState({ filePath: null, isDirty: false });
 }
 
 export async function openFile(view: EditorView) {
-  if (!(await confirmDiscard())) return;
+  if (!(await confirmUnsavedChanges(view))) return;
   const path = await open({ multiple: false, directory: false, filters });
   if (path === null) return;
   const text = await readTextFile(path);

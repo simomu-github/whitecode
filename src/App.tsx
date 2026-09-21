@@ -10,7 +10,7 @@ import { ResizeHandle } from "./components/ResizeHandle";
 import { Toolbar } from "./components/Toolbar";
 import { Editor } from "./editor/Editor";
 import { insertInstruction } from "./editor/insert";
-import { newFile, openFile, saveFile, saveFileAs } from "./file/fileActions";
+import { confirmUnsavedChanges, newFile, openFile, saveFile, saveFileAs } from "./file/fileActions";
 import { fileNameOf, useAppStore } from "./store";
 import { type ParameterizedInstruction, hasParam } from "./whitespace/instructions";
 
@@ -46,6 +46,22 @@ function App() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   });
+
+  useEffect(() => {
+    const unlisten = getCurrentWindow().onCloseRequested(async (event) => {
+      const view = editorViewRef.current;
+      if (!view) return;
+      try {
+        if (!(await confirmUnsavedChanges(view))) event.preventDefault();
+      } catch (error) {
+        event.preventDefault();
+        await message(String(error), { title: "Whitecode", kind: "error" });
+      }
+    });
+    return () => {
+      void unlisten.then((fn) => fn());
+    };
+  }, []);
 
   useEffect(() => {
     void getCurrentWindow().setTitle(`${isDirty ? "● " : ""}${fileNameOf(filePath)} - Whitecode`);
