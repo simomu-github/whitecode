@@ -10,8 +10,34 @@ export type ImpCategory = "stack" | "arith" | "heap" | "flow" | "io";
 /** `number` is a signed integer. */
 export type ParamKind = "number" | "label";
 
+export type InstructionName =
+  | "push"
+  | "dup"
+  | "copy"
+  | "swap"
+  | "discard"
+  | "slide"
+  | "add"
+  | "sub"
+  | "mul"
+  | "div"
+  | "mod"
+  | "store"
+  | "retrieve"
+  | "mark"
+  | "call"
+  | "jump"
+  | "jz"
+  | "jn"
+  | "ret"
+  | "end"
+  | "printc"
+  | "printn"
+  | "readc"
+  | "readn";
+
 export type InstructionDef = {
-  name: string;
+  name: InstructionName;
   category: ImpCategory;
   /** Includes the IMP but not the argument. */
   tokens: readonly Token[];
@@ -41,7 +67,7 @@ export const imps: readonly ImpDef[] = [stack, arith, heap, flow, io];
 const define = (
   { category, imp }: ImpDef,
   command: string,
-  name: string,
+  name: InstructionName,
   description: string,
   param?: ParamKind,
 ): InstructionDef => ({
