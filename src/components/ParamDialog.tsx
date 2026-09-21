@@ -24,6 +24,7 @@ export function ParamDialog({ instruction, onSubmit, onCancel }: ParamDialogProp
   }, []);
 
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: the keyboard equivalent of a backdrop click is Escape, handled by onCancel.
     <dialog
       ref={dialogRef}
       onCancel={(e) => {

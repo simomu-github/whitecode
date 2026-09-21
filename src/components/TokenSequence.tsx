@@ -8,6 +8,7 @@ export function TokenSequence({ tokens }: { tokens: readonly Token[] }) {
     <span className="flex flex-wrap gap-px font-mono text-[11px]">
       {tokens.map((token, i) => (
         <span
+          // biome-ignore lint/suspicious/noArrayIndexKey: tokens have no identity of their own; position is the identity.
           key={i}
           title={tokenName[token]}
           className="flex h-4 w-4 items-center justify-center bg-surface-raised text-fg-muted"

@@ -10,8 +10,7 @@ const dirtyTracker = EditorView.updateListener.of((update) => {
   }
 });
 
-const createState = (doc: string) =>
-  EditorState.create({ doc, extensions: [editorExtensions, dirtyTracker] });
+const createState = (doc: string) => EditorState.create({ doc, extensions: [editorExtensions, dirtyTracker] });
 
 /** Replaces the whole state so that undo history does not carry over between files. */
 export function resetDocument(view: EditorView, doc: string) {
@@ -27,10 +26,9 @@ export function Editor({ viewRef }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const view = new EditorView({
-      state: createState(""),
-      parent: containerRef.current!,
-    });
+    const parent = containerRef.current;
+    if (!parent) return;
+    const view = new EditorView({ state: createState(""), parent });
     viewRef.current = view;
     return () => {
       view.destroy();

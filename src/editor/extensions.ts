@@ -1,9 +1,9 @@
-import { history, historyKeymap, defaultKeymap, insertNewline } from "@codemirror/commands";
+import { defaultKeymap, history, historyKeymap, insertNewline } from "@codemirror/commands";
 import { EditorState, type Extension } from "@codemirror/state";
 import {
   type Command,
-  EditorView,
   drawSelection,
+  EditorView,
   highlightActiveLine,
   highlightActiveLineGutter,
   highlightWhitespace,

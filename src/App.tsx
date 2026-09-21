@@ -12,7 +12,7 @@ import { Editor } from "./editor/Editor";
 import { insertInstruction } from "./editor/insert";
 import { confirmUnsavedChanges, newFile, openFile, saveFile, saveFileAs } from "./file/fileActions";
 import { fileNameOf, useAppStore } from "./store";
-import { type ParameterizedInstruction, hasParam } from "./whitespace/instructions";
+import { hasParam, type ParameterizedInstruction } from "./whitespace/instructions";
 
 function App() {
   const editorViewRef = useRef<EditorView | null>(null);
@@ -35,10 +35,7 @@ function App() {
       if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
       const key = e.key.toLowerCase();
       const action =
-        key === "n" ? newFile
-        : key === "o" ? openFile
-        : key === "s" ? (e.shiftKey ? saveFileAs : saveFile)
-        : null;
+        key === "n" ? newFile : key === "o" ? openFile : key === "s" ? (e.shiftKey ? saveFileAs : saveFile) : null;
       if (!action) return;
       e.preventDefault();
       void runFileAction(action);
