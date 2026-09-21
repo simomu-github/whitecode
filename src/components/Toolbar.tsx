@@ -1,11 +1,18 @@
 import type { ReactNode } from "react";
 
-function ToolbarButton({ title, children }: { title: string; children: ReactNode }) {
+type ToolbarButtonProps = {
+  title: string;
+  onClick?: () => void;
+  children: ReactNode;
+};
+
+function ToolbarButton({ title, onClick, children }: ToolbarButtonProps) {
   return (
     <button
       type="button"
       title={title}
-      disabled
+      disabled={!onClick}
+      onClick={onClick}
       className="flex h-7 items-center gap-1.5 px-2 hover:bg-hover disabled:opacity-50 disabled:hover:bg-transparent"
     >
       {children}
@@ -13,10 +20,30 @@ function ToolbarButton({ title, children }: { title: string; children: ReactNode
   );
 }
 
-export function Toolbar() {
+type ToolbarProps = {
+  onNew: () => void;
+  onOpen: () => void;
+  onSave: () => void;
+  onSaveAs: () => void;
+};
+
+export function Toolbar({ onNew, onOpen, onSave, onSaveAs }: ToolbarProps) {
   return (
     <div className="flex h-9 shrink-0 items-center gap-1 border-b border-border bg-surface-raised px-2">
-      <span className="font-semibold">Whitecode</span>
+      <span className="mr-3 font-semibold">Whitecode</span>
+
+      <ToolbarButton title="New File (Ctrl+N)" onClick={onNew}>
+        New
+      </ToolbarButton>
+      <ToolbarButton title="Open File (Ctrl+O)" onClick={onOpen}>
+        Open
+      </ToolbarButton>
+      <ToolbarButton title="Save (Ctrl+S)" onClick={onSave}>
+        Save
+      </ToolbarButton>
+      <ToolbarButton title="Save As (Ctrl+Shift+S)" onClick={onSaveAs}>
+        Save As
+      </ToolbarButton>
 
       <div className="ml-auto flex items-center gap-1">
         <ToolbarButton title="Run">
