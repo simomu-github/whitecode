@@ -1,10 +1,16 @@
+import type { EditorView } from "@codemirror/view";
+import { useRef } from "react";
 import { Group, Panel } from "react-resizable-panels";
 import { InstructionPalette } from "./components/InstructionPalette";
 import { Pane, PanePlaceholder } from "./components/Pane";
 import { ResizeHandle } from "./components/ResizeHandle";
 import { Toolbar } from "./components/Toolbar";
+import { Editor } from "./editor/Editor";
+import { insertInstruction } from "./editor/insert";
 
 function App() {
+  const editorViewRef = useRef<EditorView | null>(null);
+
   return (
     <div className="flex h-full flex-col">
       <Toolbar />
@@ -12,7 +18,11 @@ function App() {
       <Group orientation="horizontal" className="min-h-0 flex-1">
         <Panel id="instructions" defaultSize="20%" minSize="12%">
           <Pane title="Instructions">
-            <InstructionPalette />
+            <InstructionPalette
+              onInsert={(instruction) => {
+                if (editorViewRef.current) insertInstruction(editorViewRef.current, instruction);
+              }}
+            />
           </Pane>
         </Panel>
 
@@ -22,7 +32,7 @@ function App() {
           <Group orientation="vertical" className="h-full">
             <Panel id="editor" minSize="20%">
               <Pane title="Editor">
-                <PanePlaceholder>Editor is not available yet.</PanePlaceholder>
+                <Editor viewRef={editorViewRef} />
               </Pane>
             </Panel>
             <ResizeHandle orientation="vertical" />

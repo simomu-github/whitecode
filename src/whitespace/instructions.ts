@@ -1,6 +1,11 @@
 /** S = Space, T = Tab, L = LF */
 export type Token = "S" | "T" | "L";
 
+const tokenChars: Record<Token, string> = { S: " ", T: "\t", L: "\n" };
+
+export const tokensToSource = (tokens: readonly Token[]): string =>
+  tokens.map((token) => tokenChars[token]).join("");
+
 export type ImpCategory = "stack" | "arith" | "heap" | "flow" | "io";
 
 /** `number` is a signed integer. */
