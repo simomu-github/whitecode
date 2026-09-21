@@ -1,10 +1,5 @@
-import {
-  type ImpCategory,
-  type InstructionDef,
-  type Token,
-  imps,
-  instructions,
-} from "../whitespace/instructions";
+import { type ImpCategory, type InstructionDef, imps, instructions } from "../whitespace/instructions";
+import { TokenSequence } from "./TokenSequence";
 
 const categoryColor: Record<ImpCategory, string> = {
   stack: "bg-imp-stack",
@@ -13,25 +8,6 @@ const categoryColor: Record<ImpCategory, string> = {
   flow: "bg-imp-flow",
   io: "bg-imp-io",
 };
-
-const tokenGlyph: Record<Token, string> = { S: "·", T: "→", L: "↵" };
-const tokenName: Record<Token, string> = { S: "Space", T: "Tab", L: "LF" };
-
-function TokenSequence({ tokens }: { tokens: readonly Token[] }) {
-  return (
-    <span className="flex gap-px font-mono text-[11px]">
-      {tokens.map((token, i) => (
-        <span
-          key={i}
-          title={tokenName[token]}
-          className="flex h-4 w-4 items-center justify-center bg-surface-raised text-fg-muted"
-        >
-          {tokenGlyph[token]}
-        </span>
-      ))}
-    </span>
-  );
-}
 
 type InstructionPaletteProps = {
   onInsert?: (instruction: InstructionDef) => void;

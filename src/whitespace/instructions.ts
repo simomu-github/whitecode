@@ -20,6 +20,11 @@ export type InstructionDef = {
   description: string;
 };
 
+export type ParameterizedInstruction = InstructionDef & { param: ParamKind };
+
+export const hasParam = (instruction: InstructionDef): instruction is ParameterizedInstruction =>
+  instruction.param !== undefined;
+
 export type ImpDef = {
   category: ImpCategory;
   label: string;

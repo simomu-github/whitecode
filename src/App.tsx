@@ -1,15 +1,18 @@
 import type { EditorView } from "@codemirror/view";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Group, Panel } from "react-resizable-panels";
 import { InstructionPalette } from "./components/InstructionPalette";
 import { Pane, PanePlaceholder } from "./components/Pane";
+import { ParamDialog } from "./components/ParamDialog";
 import { ResizeHandle } from "./components/ResizeHandle";
 import { Toolbar } from "./components/Toolbar";
 import { Editor } from "./editor/Editor";
 import { insertInstruction } from "./editor/insert";
+import { type ParameterizedInstruction, hasParam } from "./whitespace/instructions";
 
 function App() {
   const editorViewRef = useRef<EditorView | null>(null);
+  const [pendingInstruction, setPendingInstruction] = useState<ParameterizedInstruction | null>(null);
 
   return (
     <div className="flex h-full flex-col">
@@ -20,7 +23,8 @@ function App() {
           <Pane title="Instructions">
             <InstructionPalette
               onInsert={(instruction) => {
-                if (editorViewRef.current) insertInstruction(editorViewRef.current, instruction);
+                if (hasParam(instruction)) setPendingInstruction(instruction);
+                else if (editorViewRef.current) insertInstruction(editorViewRef.current, instruction);
               }}
             />
           </Pane>
@@ -66,6 +70,20 @@ function App() {
       <footer className="flex h-6 shrink-0 items-center bg-accent px-3 text-xs text-white">
         Ready
       </footer>
+
+      {pendingInstruction && (
+        <ParamDialog
+          instruction={pendingInstruction}
+          onSubmit={(paramTokens) => {
+            if (editorViewRef.current) insertInstruction(editorViewRef.current, pendingInstruction, paramTokens);
+            setPendingInstruction(null);
+          }}
+          onCancel={() => {
+            setPendingInstruction(null);
+            editorViewRef.current?.focus();
+          }}
+        />
+      )}
     </div>
   );
 }
