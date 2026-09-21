@@ -212,6 +212,27 @@ describe("VM", () => {
     expect(vm.run({ breakpoints, maxSteps: 100 })).toEqual({ status: "ready", reason: "breakpoint", steps: 4 });
   });
 
+  it("takes snapshots that do not change with the VM", () => {
+    const vm = load([
+      ["push", 2n],
+      ["push", 20n],
+      ["store"],
+      ["push", 1n],
+      ["push", 10n],
+      ["store"],
+      ["push", 7n],
+      ["end"],
+    ]);
+    vm.run({ maxSteps: 6 });
+    const snapshot = vm.snapshot();
+    vm.run();
+    expect(snapshot).toMatchObject({ pc: 6, stack: [], status: "ready", stepCount: 6 });
+    expect(snapshot.heap).toEqual([
+      [1n, 10n],
+      [2n, 20n],
+    ]);
+  });
+
   it("refuses programs with parse errors", () => {
     expect(() => new VM(parse(asm([["jump", "S"]])))).toThrow();
   });

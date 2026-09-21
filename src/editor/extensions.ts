@@ -10,10 +10,12 @@ import {
   keymap,
   lineNumbers,
 } from "@codemirror/view";
+import { debugExtensions } from "./debugHighlight";
 
 // Whitespace source is made of exactly these characters, so Tab and Enter must insert
 // them literally instead of indenting or copying the previous line's indentation.
 const insertLiteralTab: Command = (view) => {
+  if (view.state.readOnly) return false;
   view.dispatch(view.state.replaceSelection("\t"), { scrollIntoView: true, userEvent: "input" });
   return true;
 };
@@ -67,4 +69,5 @@ export const editorExtensions: Extension[] = [
   whitespaceKeymap,
   keymap.of([...defaultKeymap, ...historyKeymap]),
   theme,
+  debugExtensions,
 ];

@@ -9,6 +9,19 @@ export type VMError = {
 
 export type RunResult = { status: VMStatus; reason: "stopped" | "breakpoint" | "stepLimit"; steps: number };
 
+/** Plain copy of the VM state, safe to hand to React. */
+export type VMSnapshot = {
+  pc: number;
+  stack: bigint[];
+  /** Sorted by address. */
+  heap: [bigint, bigint][];
+  callStack: number[];
+  output: string;
+  status: VMStatus;
+  error: VMError | null;
+  stepCount: number;
+};
+
 class RuntimeError extends Error {}
 
 /** Division and modulo round toward negative infinity, matching the reference implementation. */
@@ -42,6 +55,19 @@ export class VM {
 
   get currentInstruction(): ParsedInstruction | undefined {
     return this.program.instructions[this.pc];
+  }
+
+  snapshot(): VMSnapshot {
+    return {
+      pc: this.pc,
+      stack: [...this.stack],
+      heap: [...this.heap].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+      callStack: [...this.callStack],
+      output: this.output,
+      status: this.status,
+      error: this.error && { ...this.error },
+      stepCount: this.stepCount,
+    };
   }
 
   provideInput(text: string) {
