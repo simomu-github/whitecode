@@ -11,6 +11,7 @@ import {
   lineNumbers,
 } from "@codemirror/view";
 import { debugExtensions } from "./debugHighlight";
+import { impHighlight } from "./impHighlight";
 
 // Whitespace source is made of exactly these characters, so Tab and Enter must insert
 // them literally instead of indenting or copying the previous line's indentation.
@@ -63,6 +64,7 @@ export const editorExtensions: Extension[] = [
   highlightActiveLineGutter(),
   highlightActiveLine(),
   highlightWhitespace(),
+  impHighlight,
   drawSelection(),
   history(),
   EditorState.tabSize.of(4),
