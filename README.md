@@ -1,23 +1,45 @@
 # Whitecode
 
-難解プログラミング言語 [Whitespace](https://en.wikipedia.org/wiki/Whitespace_(programming_language)) 専用のデスクトップエディタ。Tauri + React + TypeScript 製。
+Whitecode is a standalone desktop editor for [Whitespace](https://en.wikipedia.org/wiki/Whitespace_(programming_language)), the esoteric programming language whose only meaningful characters are Space, Tab and Linefeed — everything else is a comment.
 
-技術スタックの詳細は [whitecode-stack.md](whitecode-stack.md) を参照。
+Writing Whitespace by hand normally means typing invisible characters and hoping you got them right. Whitecode makes the language visible and debuggable instead.
 
-## 開発環境
+## Features
 
-- Node.js 26.8.2(nodenv / `.node-version`)
-- pnpm(Corepack 経由。`npm i -g corepack && corepack enable pnpm`)
-- Rust と [Tauri の前提ライブラリ](https://tauri.app/start/prerequisites/)
+- **Instruction palette** — every Whitespace instruction, grouped by category, ready to insert with a click. No need to memorize which sequence of spaces and tabs a command needs.
+- **Whitespace made visible** — spaces, tabs and line feeds are rendered as visible marks, and each instruction is colored by its category so the structure of a program is visible at a glance.
+- **Step debugger** — run a program to completion, step through it one instruction at a time, or set breakpoints. Watch the stack, the heap and the current instruction update as the program runs.
 
-## コマンド
+---
+
+## Building from source
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) 26.8.2 or later (a `.node-version` file is provided for [nodenv](https://github.com/nodenv/nodenv) users)
+- [pnpm](https://pnpm.io/), enabled via [Corepack](https://nodejs.org/api/corepack.html):
+  ```sh
+  npm i -g corepack
+  corepack enable pnpm
+  ```
+- Rust and the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your platform
+
+### Commands
 
 ```sh
-pnpm install     # 依存関係のインストール
-pnpm tauri dev   # 開発モードで起動
-pnpm tauri build # リリースビルド
+pnpm install     # install dependencies
+pnpm tauri dev   # run in development mode
+pnpm tauri build # produce a release build
 ```
 
-## 推奨 IDE 設定
+Other useful scripts:
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+```sh
+pnpm test  # run the test suite (Vitest)
+pnpm lint  # check formatting and lint rules (Biome)
+pnpm fix   # auto-fix formatting and lint issues
+```
+
+## License
+
+[MIT](LICENSE)

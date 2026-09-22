@@ -3,6 +3,7 @@ name = "whitecode"
 version = "0.1.0"
 description = "An editor for the Whitespace programming language"
 authors = ["simomu-github"]
+license = "MIT"
 edition = "2021"
 
 [lib]
