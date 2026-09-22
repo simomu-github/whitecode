@@ -1,8 +1,10 @@
 import type { EditorView } from "@codemirror/view";
+import { breakpointLines } from "../editor/breakpoints";
 import { setReadOnly, showHighlight } from "../editor/debugHighlight";
 import { type DiagnosticMessage, useAppStore } from "../store";
 import { parse, type SourceRange } from "../whitespace/parser";
 import { VM } from "../whitespace/vm";
+import { instructionsAtLines } from "./breakpointMapping";
 
 /** Instructions per batch while running; the UI is updated between batches. */
 const RUN_BATCH_SIZE = 10_000;
@@ -15,6 +17,9 @@ const toDiagnostic = (view: EditorView, { from, to }: SourceRange, message: stri
   const line = view.state.doc.lineAt(from);
   return { from, to, line: line.number, column: from - line.from + 1, message };
 };
+
+/** Read on every batch, so breakpoints toggled during a session take effect immediately. */
+const breakpointsOf = (s: Session) => instructionsAtLines(s.vm.program.instructions, breakpointLines(s.view.state));
 
 function start(view: EditorView): Session | null {
   const program = parse(view.state.doc.toString());
@@ -64,17 +69,24 @@ function publish(s: Session) {
 }
 
 function runBatch(s: Session) {
-  s.vm.run({ maxSteps: RUN_BATCH_SIZE });
+  const { reason } = s.vm.run({ maxSteps: RUN_BATCH_SIZE, breakpoints: breakpointsOf(s) });
+  if (reason === "breakpoint") s.running = false;
   publish(s);
   if (session === s && s.running && s.vm.status === "ready") {
     s.timer = setTimeout(() => runBatch(s), 0);
   }
 }
 
-/** Runs until the program stops or waits for input; starts a session if needed. */
+/** Runs until the program stops, waits for input or reaches a breakpoint; starts a session if needed. */
 export function run(view: EditorView) {
+  const isNew = !session;
   const s = session ?? start(view);
   if (!s || s.running) return;
+  // VM.run always executes the current instruction, so a breakpoint on the very first one is checked here.
+  if (isNew && breakpointsOf(s).has(s.vm.pc)) {
+    publish(s);
+    return;
+  }
   s.running = true;
   runBatch(s);
 }

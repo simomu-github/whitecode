@@ -10,6 +10,7 @@ import {
   keymap,
   lineNumbers,
 } from "@codemirror/view";
+import { breakpoints } from "./breakpoints";
 import { debugExtensions } from "./debugHighlight";
 import { impHighlight } from "./impHighlight";
 
@@ -54,12 +55,13 @@ const theme = EditorView.theme(
       border: "none",
     },
     ".cm-activeLineGutter": { backgroundColor: "transparent", color: "var(--color-fg)" },
-    ".cm-lineNumbers .cm-gutterElement": { padding: "0 12px 0 16px" },
+    ".cm-lineNumbers .cm-gutterElement": { padding: "0 12px 0 4px" },
   },
   { dark: true },
 );
 
 export const editorExtensions: Extension[] = [
+  breakpoints,
   lineNumbers(),
   highlightActiveLineGutter(),
   highlightActiveLine(),

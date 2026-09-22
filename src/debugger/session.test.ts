@@ -2,6 +2,7 @@
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { breakpointLines, toggleBreakpoint } from "../editor/breakpoints";
 import { editorExtensions } from "../editor/extensions";
 import { useAppStore } from "../store";
 import { type AsmLine, asm } from "../whitespace/testing";
@@ -121,6 +122,64 @@ describe("debug session", () => {
     expect(highlighted()).toEqual(["error"]);
     view.dispatch({ changes: { from: 0, insert: "x" } });
     expect(highlighted()).toEqual([]);
+  });
+
+  describe("breakpoints", () => {
+    const counter: AsmLine[] = [
+      ["push", 0n], // line 1
+      ["mark", "S"], // lines 2-3
+      ["push", 1n], // line 4
+      ["add"], // line 5, where dup also starts
+      ["dup"],
+      ["printn"],
+      ["jump", "S"],
+    ];
+    const lineStart = (n: number) => view.state.doc.line(n).from;
+
+    it("stops at breakpoints and continues to the next hit", () => {
+      load(counter);
+      toggleBreakpoint(view, lineStart(4));
+      debug.run(view);
+      expect(state()).toMatchObject({ debugStatus: "paused", snapshot: { pc: 2, output: "" } });
+      expect(view.state.readOnly).toBe(true);
+
+      debug.run(view);
+      expect(state()).toMatchObject({ debugStatus: "paused", snapshot: { pc: 2, output: "1" } });
+    });
+
+    it("stops before the first instruction of a new run", () => {
+      load(counter);
+      toggleBreakpoint(view, lineStart(1));
+      debug.run(view);
+      expect(state()).toMatchObject({ debugStatus: "paused", snapshot: { pc: 0, stepCount: 0 } });
+    });
+
+    it("applies breakpoints toggled while paused", () => {
+      load(counter);
+      debug.step(view);
+      toggleBreakpoint(view, lineStart(5));
+      debug.run(view);
+      expect(state().snapshot?.pc).toBe(3);
+
+      toggleBreakpoint(view, lineStart(5));
+      debug.run(view);
+      vi.advanceTimersToNextTimer();
+      expect(state().debugStatus).toBe("running");
+    });
+
+    it("toggles with F9 and moves with edits above", () => {
+      load(counter);
+      view.dispatch({ selection: { anchor: lineStart(4) } });
+      view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { key: "F9", bubbles: true }));
+      expect(breakpointLines(view.state).map((l) => l.number)).toEqual([4]);
+
+      view.dispatch({ changes: { from: 0, insert: "comment\n" } });
+      expect(breakpointLines(view.state).map((l) => l.number)).toEqual([5]);
+
+      view.dispatch({ selection: { anchor: lineStart(5) + 1 } });
+      view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { key: "F9", bubbles: true }));
+      expect(breakpointLines(view.state)).toEqual([]);
+    });
   });
 
   it("blocks literal Tab insertion while running", () => {
