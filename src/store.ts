@@ -18,6 +18,13 @@ type AppState = {
   snapshot: VMSnapshot | null;
   /** Parse errors or the runtime error of the last session. */
   diagnostics: DiagnosticMessage[];
+  /**
+   * The Input panel's text. A session started with text reads it and then hits EOF; a session started
+   * empty is interactive, and lines typed into it are sent as they are completed.
+   */
+  presetInput: string;
+  /** How much of `presetInput` has been sent during an interactive session; `null` otherwise. */
+  interactiveInputSent: number | null;
 };
 
 export const useAppStore = create<AppState>(() => ({
@@ -27,6 +34,8 @@ export const useAppStore = create<AppState>(() => ({
   debugStatus: "idle",
   snapshot: null,
   diagnostics: [],
+  presetInput: "",
+  interactiveInputSent: null,
 }));
 
 export const isSessionActive = (status: DebugStatus) =>

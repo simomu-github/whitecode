@@ -32,7 +32,13 @@ const highlighted = () => [
 
 beforeEach(() => {
   vi.useFakeTimers();
-  useAppStore.setState({ debugStatus: "idle", snapshot: null, diagnostics: [] });
+  useAppStore.setState({
+    debugStatus: "idle",
+    snapshot: null,
+    diagnostics: [],
+    presetInput: "",
+    interactiveInputSent: null,
+  });
 });
 
 afterEach(() => {
@@ -87,14 +93,73 @@ describe("debug session", () => {
     expect(view.state.readOnly).toBe(false);
   });
 
-  it("waits for input and resumes running when a line arrives", () => {
-    load([["push", 0n], ["readn"], ["push", 0n], ["retrieve"], ["printn"], ["end"]]);
-    debug.run(view);
-    expect(state().debugStatus).toBe("waitingForInput");
+  describe("input", () => {
+    const readTwo: AsmLine[] = [
+      ["push", 0n],
+      ["readn"],
+      ["push", 0n],
+      ["retrieve"],
+      ["printn"],
+      ["push", 0n],
+      ["readn"],
+      ["push", 0n],
+      ["retrieve"],
+      ["printn"],
+      ["end"],
+    ];
 
-    debug.provideInput("42\n");
-    expect(state().debugStatus).toBe("halted");
-    expect(state().snapshot?.output).toBe("42");
+    it("reads preset input, even without a final newline, and then hits EOF", () => {
+      load(readTwo);
+      debug.editInput("4\n2");
+      debug.run(view);
+      expect(state().debugStatus).toBe("halted");
+      expect(state().snapshot?.output).toBe("42");
+
+      debug.editInput("4\n");
+      debug.run(view);
+      expect(state().debugStatus).toBe("error");
+      expect(state().diagnostics[0]?.message).toBe("Unexpected end of input.");
+    });
+
+    it("ignores edits to preset input while it is being read", () => {
+      load(readTwo);
+      debug.editInput("4\n");
+      debug.step(view);
+      debug.editInput("5\n");
+      expect(state().presetInput).toBe("4\n");
+    });
+
+    it("waits for typed input when started empty and sends each completed line", () => {
+      load(readTwo);
+      debug.run(view);
+      expect(state().debugStatus).toBe("waitingForInput");
+      expect(state().interactiveInputSent).toBe(0);
+
+      debug.editInput("4");
+      expect(state().debugStatus).toBe("waitingForInput");
+      debug.editInput("4\n");
+      expect(state().snapshot?.output).toBe("4");
+      expect(state().interactiveInputSent).toBe(2);
+
+      // Text already sent is locked.
+      debug.editInput("5\n");
+      expect(state().presetInput).toBe("4\n");
+
+      debug.editInput("4\n2\n");
+      expect(state().debugStatus).toBe("halted");
+      expect(state().snapshot?.output).toBe("42");
+      // The typed text stays, so the next run uses it as preset input.
+      expect(state()).toMatchObject({ presetInput: "4\n2\n", interactiveInputSent: null });
+    });
+
+    it("sends an unfinished line with EOF", () => {
+      load(readTwo);
+      debug.run(view);
+      debug.editInput("4\n2");
+      debug.sendEof();
+      expect(state().debugStatus).toBe("halted");
+      expect(state().snapshot?.output).toBe("42");
+    });
   });
 
   it("reports parse errors with their position without starting a session", () => {

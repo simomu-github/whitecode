@@ -9,6 +9,7 @@ import { Pane } from "./components/Pane";
 import { ParamDialog } from "./components/ParamDialog";
 import { ResizeHandle } from "./components/ResizeHandle";
 import { Toolbar } from "./components/Toolbar";
+import { InputView } from "./debugger/InputView";
 import { OutputView } from "./debugger/OutputView";
 import { HeapView, StackView } from "./debugger/StateViews";
 import * as debug from "./debugger/session";
@@ -220,17 +221,27 @@ function App() {
               </Pane>
             </Panel>
             <ResizeHandle orientation="vertical" />
-            <Panel id="output" defaultSize="30%" minSize="10%">
-              <Pane title="Output">
-                <OutputView
-                  onSelectRange={(from, to) => {
-                    const view = editorViewRef.current;
-                    if (!view) return;
-                    view.dispatch({ selection: { anchor: from, head: to }, scrollIntoView: true });
-                    view.focus();
-                  }}
-                />
-              </Pane>
+            <Panel id="io" defaultSize="30%" minSize="10%">
+              <Group orientation="horizontal" className="h-full">
+                <Panel id="input" defaultSize="40%" minSize="15%">
+                  <Pane title="Input">
+                    <InputView />
+                  </Pane>
+                </Panel>
+                <ResizeHandle orientation="horizontal" />
+                <Panel id="output" minSize="15%">
+                  <Pane title="Output">
+                    <OutputView
+                      onSelectRange={(from, to) => {
+                        const view = editorViewRef.current;
+                        if (!view) return;
+                        view.dispatch({ selection: { anchor: from, head: to }, scrollIntoView: true });
+                        view.focus();
+                      }}
+                    />
+                  </Pane>
+                </Panel>
+              </Group>
             </Panel>
           </Group>
         </Panel>
