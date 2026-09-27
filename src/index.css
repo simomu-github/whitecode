@@ -35,3 +35,7 @@ body {
   font-size: 13px;
   user-select: none;
 }
+
+:root {
+  color-scheme: dark;
+}

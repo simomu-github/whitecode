@@ -4,6 +4,7 @@ import { message } from "@tauri-apps/plugin-dialog";
 import { useEffect, useRef, useState } from "react";
 import { Group, Panel } from "react-resizable-panels";
 import { InstructionPalette } from "./components/InstructionPalette";
+import type { Menu } from "./components/MenuBar";
 import { Pane } from "./components/Pane";
 import { ParamDialog } from "./components/ParamDialog";
 import { ResizeHandle } from "./components/ResizeHandle";
@@ -12,6 +13,7 @@ import { OutputView } from "./debugger/OutputView";
 import { HeapView, StackView } from "./debugger/StateViews";
 import * as debug from "./debugger/session";
 import { Editor } from "./editor/Editor";
+import * as edit from "./editor/editCommands";
 import { insertInstruction } from "./editor/insert";
 import { confirmUnsavedChanges, newFile, openFile, saveFile, saveFileAs } from "./file/fileActions";
 import { type DebugStatus, fileNameOf, isSessionActive, useAppStore } from "./store";
@@ -52,6 +54,49 @@ function App() {
       await message(String(error), { title: "Whitecode", kind: "error" });
     }
   };
+
+  const runEditAction = (action: (view: EditorView) => void | Promise<void>) => async () => {
+    if (!editorViewRef.current) return;
+    try {
+      await action(editorViewRef.current);
+    } catch (error) {
+      await message(String(error), { title: "Whitecode", kind: "error" });
+    }
+  };
+
+  // Editing is disabled while debugging because the editor is read-only then.
+  const whenEditable = (action: () => void) => (debugging ? undefined : action);
+
+  const menus: Menu[] = [
+    {
+      label: "File",
+      mnemonic: "f",
+      items: [
+        { label: "New File", shortcut: "Ctrl+N", onClick: () => runFileAction(newFile) },
+        { label: "Open File...", shortcut: "Ctrl+O", onClick: () => runFileAction(openFile) },
+        null,
+        { label: "Save", shortcut: "Ctrl+S", onClick: () => runFileAction(saveFile) },
+        { label: "Save As...", shortcut: "Ctrl+Shift+S", onClick: () => runFileAction(saveFileAs) },
+        null,
+        // Goes through onCloseRequested, so unsaved changes are still confirmed.
+        { label: "Exit", onClick: () => void getCurrentWindow().close() },
+      ],
+    },
+    {
+      label: "Edit",
+      mnemonic: "e",
+      items: [
+        { label: "Undo", shortcut: "Ctrl+Z", onClick: whenEditable(runEditAction(edit.undo)) },
+        { label: "Redo", shortcut: "Ctrl+Y", onClick: whenEditable(runEditAction(edit.redo)) },
+        null,
+        { label: "Cut", shortcut: "Ctrl+X", onClick: whenEditable(runEditAction(edit.cut)) },
+        { label: "Copy", shortcut: "Ctrl+C", onClick: runEditAction(edit.copy) },
+        { label: "Paste", shortcut: "Ctrl+V", onClick: whenEditable(runEditAction(edit.paste)) },
+        null,
+        { label: "Select All", shortcut: "Ctrl+A", onClick: runEditAction(edit.selectAll) },
+      ],
+    },
+  ];
 
   // Re-registered every render so the handler always sees the latest runFileAction.
   useEffect(() => {
@@ -98,10 +143,7 @@ function App() {
   return (
     <div className="flex h-full flex-col">
       <Toolbar
-        onNew={() => runFileAction(newFile)}
-        onOpen={() => runFileAction(openFile)}
-        onSave={() => runFileAction(saveFile)}
-        onSaveAs={() => runFileAction(saveFileAs)}
+        menus={menus}
         onRun={debugStatus === "running" ? undefined : runOrPause}
         onPause={debugStatus === "running" ? runOrPause : undefined}
         onStep={debugStatus === "running" ? undefined : step}

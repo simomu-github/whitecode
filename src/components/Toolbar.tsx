@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { type Menu, MenuBar } from "./MenuBar";
 
 type ToolbarButtonProps = {
   title: string;
@@ -21,10 +22,7 @@ function ToolbarButton({ title, onClick, children }: ToolbarButtonProps) {
 }
 
 type ToolbarProps = {
-  onNew: () => void;
-  onOpen: () => void;
-  onSave: () => void;
-  onSaveAs: () => void;
+  menus: Menu[];
   /** Omitted callbacks render their button disabled. */
   onRun?: () => void;
   onPause?: () => void;
@@ -32,23 +30,12 @@ type ToolbarProps = {
   onStop?: () => void;
 };
 
-export function Toolbar({ onNew, onOpen, onSave, onSaveAs, onRun, onPause, onStep, onStop }: ToolbarProps) {
+export function Toolbar({ menus, onRun, onPause, onStep, onStop }: ToolbarProps) {
   return (
     <div className="flex h-9 shrink-0 items-center gap-1 border-b border-border bg-surface-raised px-2">
       <span className="mr-3 font-semibold">Whitecode</span>
 
-      <ToolbarButton title="New File (Ctrl+N)" onClick={onNew}>
-        New
-      </ToolbarButton>
-      <ToolbarButton title="Open File (Ctrl+O)" onClick={onOpen}>
-        Open
-      </ToolbarButton>
-      <ToolbarButton title="Save (Ctrl+S)" onClick={onSave}>
-        Save
-      </ToolbarButton>
-      <ToolbarButton title="Save As (Ctrl+Shift+S)" onClick={onSaveAs}>
-        Save As
-      </ToolbarButton>
+      <MenuBar menus={menus} />
 
       <div className="ml-auto flex items-center gap-1">
         {onPause ? (
