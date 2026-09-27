@@ -17,6 +17,14 @@ import * as edit from "./editor/editCommands";
 import { insertInstruction } from "./editor/insert";
 import { confirmUnsavedChanges, newFile, openFile, saveFile, saveFileAs } from "./file/fileActions";
 import { type DebugStatus, fileNameOf, isSessionActive, useAppStore } from "./store";
+import {
+  MAX_EDITOR_FONT_SIZE,
+  MIN_EDITOR_FONT_SIZE,
+  resetZoom,
+  useViewSettings,
+  zoomIn,
+  zoomOut,
+} from "./viewSettings";
 import { hasParam, type ParameterizedInstruction } from "./whitespace/instructions";
 
 const statusLabels: Record<DebugStatus, string> = {
@@ -37,6 +45,7 @@ function App() {
   const debugStatus = useAppStore((s) => s.debugStatus);
   const stepCount = useAppStore((s) => s.snapshot?.stepCount);
   const debugging = isSessionActive(debugStatus);
+  const { impColors, whitespaceSymbols, editorFontSize } = useViewSettings();
 
   const withView = (action: (view: EditorView) => void) => () => {
     if (editorViewRef.current) action(editorViewRef.current);
@@ -96,6 +105,34 @@ function App() {
         { label: "Select All", shortcut: "Ctrl+A", onClick: runEditAction(edit.selectAll) },
       ],
     },
+    {
+      label: "View",
+      mnemonic: "v",
+      items: [
+        {
+          label: "Instruction Colors",
+          checked: impColors,
+          onClick: () => useViewSettings.setState({ impColors: !impColors }),
+        },
+        {
+          label: "Whitespace Symbols",
+          checked: whitespaceSymbols,
+          onClick: () => useViewSettings.setState({ whitespaceSymbols: !whitespaceSymbols }),
+        },
+        null,
+        {
+          label: "Zoom In",
+          shortcut: "Ctrl++",
+          onClick: editorFontSize < MAX_EDITOR_FONT_SIZE ? zoomIn : undefined,
+        },
+        {
+          label: "Zoom Out",
+          shortcut: "Ctrl+-",
+          onClick: editorFontSize > MIN_EDITOR_FONT_SIZE ? zoomOut : undefined,
+        },
+        { label: "Reset Zoom", shortcut: "Ctrl+0", onClick: resetZoom },
+      ],
+    },
   ];
 
   // Re-registered every render so the handler always sees the latest runFileAction.
@@ -109,6 +146,13 @@ function App() {
         return;
       }
       if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      // "+" needs Shift on many layouts (e.g. Japanese), so "=" and "+" both zoom in, as in browsers.
+      const zoom = e.key === "+" || e.key === "=" ? zoomIn : e.key === "-" ? zoomOut : e.key === "0" ? resetZoom : null;
+      if (zoom) {
+        e.preventDefault();
+        zoom();
+        return;
+      }
       const key = e.key.toLowerCase();
       const action =
         key === "n" ? newFile : key === "o" ? openFile : key === "s" ? (e.shiftKey ? saveFileAs : saveFile) : null;

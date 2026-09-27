@@ -5,6 +5,8 @@ export type MenuItem = {
   shortcut?: string;
   /** Omitted renders the item disabled. */
   onClick?: () => void;
+  /** Set to make the item a toggle that shows a check mark while on. */
+  checked?: boolean;
 };
 
 export type Menu = {
@@ -35,7 +37,7 @@ export function MenuBar({ menus }: { menus: Menu[] }) {
   const focusFirstRef = useRef(false);
 
   const enabledItems = () =>
-    Array.from(dropdownRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)') ?? []);
+    Array.from(dropdownRef.current?.querySelectorAll<HTMLButtonElement>('[role^="menuitem"]:not(:disabled)') ?? []);
 
   // Remember where focus was so closing the menu can hand it back (usually to the editor).
   const rememberFocus = () => {
@@ -154,16 +156,23 @@ export function MenuBar({ menus }: { menus: Menu[] }) {
                   <button
                     key={item.label}
                     type="button"
-                    role="menuitem"
+                    {...(item.checked === undefined
+                      ? { role: "menuitem" }
+                      : { role: "menuitemcheckbox", "aria-checked": item.checked })}
                     disabled={!item.onClick}
                     onClick={() => {
                       close();
                       item.onClick?.();
                     }}
                     onPointerEnter={(e) => e.currentTarget.focus()}
-                    className="flex w-full items-center justify-between gap-6 px-4 py-1 text-left outline-none focus:bg-accent focus:text-white disabled:opacity-50"
+                    className="flex w-full items-center justify-between gap-6 py-1 pr-4 pl-2 text-left outline-none focus:bg-accent focus:text-white disabled:opacity-50"
                   >
-                    <span>{item.label}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 text-center" aria-hidden="true">
+                        {item.checked && "✓"}
+                      </span>
+                      {item.label}
+                    </span>
                     {item.shortcut && <span className="text-xs opacity-70">{item.shortcut}</span>}
                   </button>
                 ) : (

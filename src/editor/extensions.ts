@@ -36,7 +36,7 @@ const theme = EditorView.theme(
     },
     ".cm-scroller": {
       fontFamily: "var(--font-mono)",
-      fontSize: "14px",
+      fontSize: "var(--editor-font-size, 14px)",
       lineHeight: "1.5",
     },
     ".cm-content": {
@@ -56,6 +56,8 @@ const theme = EditorView.theme(
     },
     ".cm-activeLineGutter": { backgroundColor: "transparent", color: "var(--color-fg)" },
     ".cm-lineNumbers .cm-gutterElement": { padding: "0 12px 0 4px" },
+    "&.cm-hideWhitespace .cm-highlightSpace": { backgroundImage: "none" },
+    "&.cm-hideWhitespace .cm-highlightTab": { backgroundImage: "none" },
   },
   { dark: true },
 );

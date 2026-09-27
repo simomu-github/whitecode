@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { asm } from "../whitespace/testing";
 import { showHighlight } from "./debugHighlight";
 import { editorExtensions } from "./extensions";
+import { impColorsEnabled } from "./impHighlight";
 
 let view: EditorView;
 
@@ -65,6 +66,19 @@ describe("IMP highlighting", () => {
     load(asm([["dup"]]));
     view.dispatch({ changes: { from: 0, insert: asm([["add"]]) } });
     expect(marks().map((m) => m.title)).toEqual(["add", "dup", "dup"]);
+  });
+
+  it("draws neither colors nor tooltips when turned off", () => {
+    view = new EditorView({
+      state: EditorState.create({
+        doc: asm([["push", 5n], ["add"]]),
+        extensions: [editorExtensions, impColorsEnabled.of(false)],
+      }),
+      parent: document.body,
+    });
+    expect(marks()).toEqual([]);
+    expect(view.contentDOM.querySelector("[title]")).toBeNull();
+    expect(lineFeeds()).toEqual(["cm-lf"]);
   });
 
   it("keeps the debugger highlight inside the IMP marks so it stays visible", () => {
