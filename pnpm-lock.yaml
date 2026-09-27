@@ -176,7 +176,7 @@ importers:
         specifier: ^6.43.12
         version: 6.43.12
       '@tauri-apps/api':
-        specifier: ^2
+        specifier: ~2.11.1
         version: 2.11.1
       '@tauri-apps/plugin-clipboard-manager':
         specifier: ~2.3.3
