@@ -17,9 +17,9 @@ export type Menu = {
   items: (MenuItem | null)[];
 };
 
-function MenuLabel({ label, mnemonic }: { label: string; mnemonic: string }) {
+function MenuLabel({ label, mnemonic, showMnemonic }: { label: string; mnemonic: string; showMnemonic: boolean }) {
   const i = label.toLowerCase().indexOf(mnemonic.toLowerCase());
-  if (i < 0) return label;
+  if (i < 0 || !showMnemonic) return label;
   return (
     <>
       {label.slice(0, i)}
@@ -35,6 +35,8 @@ export function MenuBar({ menus }: { menus: Menu[] }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const focusFirstRef = useRef(false);
+  // Like Windows and VS Code, the mnemonic underlines only appear while Alt is held.
+  const [altHeld, setAltHeld] = useState(false);
 
   const enabledItems = () =>
     Array.from(dropdownRef.current?.querySelectorAll<HTMLButtonElement>('[role^="menuitem"]:not(:disabled)') ?? []);
@@ -64,6 +66,21 @@ export function MenuBar({ menus }: { menus: Menu[] }) {
       enabledItems()[0]?.focus();
     }
   });
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) =>
+      setAltHeld(e.type === "keydown" ? e.key === "Alt" || e.altKey : e.key !== "Alt" && e.altKey);
+    // Alt+Tab to another window never delivers the keyup here.
+    const onBlur = () => setAltHeld(false);
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("keyup", onKey, true);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("keyup", onKey, true);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, []);
 
   // Re-registered every render so the handler always sees the latest state.
   useEffect(() => {
@@ -143,7 +160,7 @@ export function MenuBar({ menus }: { menus: Menu[] }) {
             }}
             className={`flex h-7 items-center px-2 hover:bg-hover ${openIndex === menuIndex ? "bg-hover" : ""}`}
           >
-            <MenuLabel label={menu.label} mnemonic={menu.mnemonic} />
+            <MenuLabel label={menu.label} mnemonic={menu.mnemonic} showMnemonic={altHeld} />
           </button>
           {openIndex === menuIndex && (
             <div
