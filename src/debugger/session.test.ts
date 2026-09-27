@@ -2,7 +2,12 @@
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { breakpointLines, toggleBreakpoint } from "../editor/breakpoints";
+import {
+  breakpointLines,
+  removeAllBreakpoints,
+  toggleBreakpoint,
+  toggleBreakpointAtCursor,
+} from "../editor/breakpoints";
 import { editorExtensions } from "../editor/extensions";
 import { useAppStore } from "../store";
 import { type AsmLine, asm } from "../whitespace/testing";
@@ -232,19 +237,38 @@ describe("debug session", () => {
       expect(state().debugStatus).toBe("running");
     });
 
-    it("toggles with F9 and moves with edits above", () => {
+    it("toggles at the cursor and moves with edits above", () => {
       load(counter);
       view.dispatch({ selection: { anchor: lineStart(4) } });
-      view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { key: "F9", bubbles: true }));
+      toggleBreakpointAtCursor(view);
       expect(breakpointLines(view.state).map((l) => l.number)).toEqual([4]);
 
       view.dispatch({ changes: { from: 0, insert: "comment\n" } });
       expect(breakpointLines(view.state).map((l) => l.number)).toEqual([5]);
 
       view.dispatch({ selection: { anchor: lineStart(5) + 1 } });
-      view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { key: "F9", bubbles: true }));
+      toggleBreakpointAtCursor(view);
       expect(breakpointLines(view.state)).toEqual([]);
     });
+
+    it("removes all breakpoints at once", () => {
+      load(counter);
+      toggleBreakpoint(view, lineStart(2));
+      toggleBreakpoint(view, lineStart(4));
+      removeAllBreakpoints(view);
+      expect(breakpointLines(view.state)).toEqual([]);
+    });
+  });
+
+  it("restarts a paused session from the first instruction", () => {
+    load([["push", 1n], ["push", 2n], ["end"]]);
+    debug.step(view);
+    debug.step(view);
+    debug.step(view);
+    expect(state().snapshot).toMatchObject({ pc: 2, stack: [1n, 2n] });
+
+    debug.restart(view);
+    expect(state()).toMatchObject({ debugStatus: "halted", snapshot: { stack: [1n, 2n], stepCount: 3 } });
   });
 
   it("blocks literal Tab insertion while running", () => {

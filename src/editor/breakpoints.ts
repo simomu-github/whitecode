@@ -1,5 +1,5 @@
 import { type EditorState, type Extension, RangeSet, StateEffect, StateField } from "@codemirror/state";
-import { EditorView, GutterMarker, gutter, keymap } from "@codemirror/view";
+import { EditorView, GutterMarker, gutter } from "@codemirror/view";
 
 class BreakpointMarker extends GutterMarker {
   toDOM() {
@@ -16,12 +16,15 @@ const toggleEffect = StateEffect.define<{ pos: number; on: boolean }>({
   map: ({ pos, on }, changes) => ({ pos: changes.mapPos(pos), on }),
 });
 
+const clearEffect = StateEffect.define<null>();
+
 /** Markers sit at line starts and move with edits, so breakpoints follow their code. */
 const breakpointField = StateField.define<RangeSet<GutterMarker>>({
   create: () => RangeSet.empty,
   update(set, tr) {
     let next = set.map(tr.changes);
     for (const effect of tr.effects) {
+      if (effect.is(clearEffect)) next = RangeSet.empty;
       if (!effect.is(toggleEffect)) continue;
       const { pos, on } = effect.value;
       next = on
@@ -47,6 +50,15 @@ export function toggleBreakpoint(view: EditorView, pos: number) {
   view.dispatch({ effects: toggleEffect.of({ pos: line.from, on: !hasBreakpoint(view.state, line.from) }) });
 }
 
+/** Toggles the breakpoint on the line of the main cursor. */
+export function toggleBreakpointAtCursor(view: EditorView) {
+  toggleBreakpoint(view, view.state.selection.main.head);
+}
+
+export function removeAllBreakpoints(view: EditorView) {
+  view.dispatch({ effects: clearEffect.of(null) });
+}
+
 /** Lines that currently have a breakpoint, in document order and without duplicates. */
 export function breakpointLines(state: EditorState): { number: number; from: number; to: number }[] {
   const lines = new Map<number, { number: number; from: number; to: number }>();
@@ -70,15 +82,6 @@ export const breakpoints: Extension = [
       },
     },
   }),
-  keymap.of([
-    {
-      key: "F9",
-      run: (view) => {
-        toggleBreakpoint(view, view.state.selection.main.head);
-        return true;
-      },
-    },
-  ]),
   EditorView.baseTheme({
     ".cm-breakpoint-gutter .cm-gutterElement": {
       display: "flex",

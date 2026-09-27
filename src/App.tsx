@@ -13,6 +13,7 @@ import { InputView } from "./debugger/InputView";
 import { OutputView } from "./debugger/OutputView";
 import { HeapView, StackView } from "./debugger/StateViews";
 import * as debug from "./debugger/session";
+import { removeAllBreakpoints, toggleBreakpointAtCursor } from "./editor/breakpoints";
 import { Editor } from "./editor/Editor";
 import * as edit from "./editor/editCommands";
 import { insertInstruction } from "./editor/insert";
@@ -53,6 +54,9 @@ function App() {
   };
   const runOrPause = debugStatus === "running" ? debug.pause : withView(debug.run);
   const step = withView(debug.step);
+  const restart = withView(debug.restart);
+  const toggleBreakpoint = withView(toggleBreakpointAtCursor);
+  const removeBreakpoints = withView(removeAllBreakpoints);
 
   const runFileAction = async (action: (view: EditorView) => Promise<void>) => {
     if (!editorViewRef.current) return;
@@ -134,15 +138,35 @@ function App() {
         { label: "Reset Zoom", shortcut: "Ctrl+0", onClick: resetZoom },
       ],
     },
+    {
+      label: "Run",
+      mnemonic: "r",
+      items: [
+        debugStatus === "running"
+          ? { label: "Pause", shortcut: "F5", onClick: runOrPause }
+          : { label: "Run", shortcut: "F5", onClick: runOrPause },
+        { label: "Restart", shortcut: "Ctrl+Shift+F5", onClick: debugging ? restart : undefined },
+        { label: "Stop", shortcut: "Shift+F5", onClick: debugging ? debug.stop : undefined },
+        null,
+        { label: "Step", shortcut: "F10", onClick: debugStatus === "running" ? undefined : step },
+        null,
+        { label: "Toggle Breakpoint", shortcut: "F9", onClick: toggleBreakpoint },
+        { label: "Remove All Breakpoints", shortcut: "Ctrl+Shift+F9", onClick: removeBreakpoints },
+      ],
+    },
   ];
 
   // Re-registered every render so the handler always sees the latest runFileAction.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "F5" || e.key === "F10") {
+      if (e.key === "F5" || e.key === "F9" || e.key === "F10") {
         e.preventDefault();
+        const ctrlShift = (e.ctrlKey || e.metaKey) && e.shiftKey;
         if (e.key === "F10") step();
-        else if (e.shiftKey) debug.stop();
+        else if (e.key === "F9") (ctrlShift ? removeBreakpoints : toggleBreakpoint)();
+        else if (ctrlShift) {
+          if (debugging) restart();
+        } else if (e.shiftKey) debug.stop();
         else runOrPause();
         return;
       }

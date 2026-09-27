@@ -126,6 +126,12 @@ export function stop() {
   showHighlight(s.view, null);
 }
 
+/** Ends the current session, if any, and runs the program again from the start. */
+export function restart(view: EditorView) {
+  stop();
+  run(view);
+}
+
 /**
  * Applies an edit to the Input panel's text. Outside a session the text is free to change; a preset session
  * has already consumed it, so edits are ignored. In an interactive session, text already sent is locked and
