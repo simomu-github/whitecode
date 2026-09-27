@@ -31,7 +31,7 @@ const theme = EditorView.theme(
   {
     "&": {
       height: "100%",
-      backgroundColor: "var(--color-surface)",
+      backgroundColor: "var(--color-surface-sunken)",
       color: "var(--color-fg)",
     },
     ".cm-scroller": {
@@ -50,7 +50,7 @@ const theme = EditorView.theme(
     },
     ".cm-activeLine": { backgroundColor: "#2a2d2e" },
     ".cm-gutters": {
-      backgroundColor: "var(--color-surface)",
+      backgroundColor: "var(--color-surface-sunken)",
       color: "#6e7681",
       border: "none",
     },

@@ -66,7 +66,7 @@ export function OutputView({ onSelectRange }: OutputViewProps) {
           spellCheck={false}
           autoComplete="off"
           placeholder={active ? "Press Enter to send a line" : "Available while running"}
-          className="min-w-0 flex-1 border border-border bg-surface px-2 py-0.5 font-mono text-xs outline-none focus:border-accent disabled:opacity-50"
+          className="min-w-0 flex-1 border border-border bg-surface-sunken px-2 py-0.5 font-mono text-xs outline-none focus:border-accent disabled:opacity-50"
         />
         <button
           type="button"

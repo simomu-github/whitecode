@@ -57,7 +57,7 @@ export function ParamDialog({ instruction, onSubmit, onCancel }: ParamDialogProp
             onChange={(e) => setInput(e.target.value)}
             spellCheck={false}
             autoComplete="off"
-            className="border border-border bg-surface px-2 py-1 font-mono outline-none focus:border-accent"
+            className="border border-border bg-surface-sunken px-2 py-1 font-mono outline-none focus:border-accent"
           />
         </label>
 

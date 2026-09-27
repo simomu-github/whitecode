@@ -5,6 +5,8 @@
   --font-mono: "Cascadia Code", Consolas, "DejaVu Sans Mono", monospace;
 
   --color-surface: #1e1e1e;
+  /* Where the user types (editor, input fields): a step darker than the panels. */
+  --color-surface-sunken: #181818;
   --color-surface-alt: #252526;
   --color-surface-raised: #2d2d2d;
   --color-hover: #3a3d41;
