@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+// Shared with the app bundle so the in-app icon always matches the window/taskbar icon.
+import appIcon from "../../src-tauri/icons/64x64.png";
 import { type Menu, MenuBar } from "./MenuBar";
 
 type ToolbarButtonProps = {
@@ -33,6 +35,7 @@ type ToolbarProps = {
 export function Toolbar({ menus, onRun, onPause, onStep, onStop }: ToolbarProps) {
   return (
     <div className="flex h-9 shrink-0 items-center gap-1 border-b border-border bg-surface-raised px-2">
+      <img src={appIcon} alt="" className="size-5" draggable={false} />
       <span className="mr-3 font-semibold">Whitecode</span>
 
       <MenuBar menus={menus} />
