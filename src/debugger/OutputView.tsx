@@ -40,7 +40,7 @@ export function OutputView({ onSelectRange }: OutputViewProps) {
             key={`${d.from}:${d.message}`}
             type="button"
             onClick={() => onSelectRange(d.from, d.to)}
-            className="mt-2 block text-left font-sans text-imp-io hover:underline"
+            className="mt-2 block text-left font-sans text-error hover:underline"
           >
             Ln {d.line}, Col {d.column}: {d.message}
           </button>
@@ -55,7 +55,7 @@ export function OutputView({ onSelectRange }: OutputViewProps) {
         }}
         className="flex shrink-0 items-center gap-2 border-t border-border px-2 py-1"
       >
-        <span className={`text-xs ${status === "waitingForInput" ? "text-imp-arith" : "text-fg-muted"}`}>
+        <span className={`text-xs ${status === "waitingForInput" ? "text-warning" : "text-fg-muted"}`}>
           {status === "waitingForInput" ? "Input needed" : "Input"}
         </span>
         <input

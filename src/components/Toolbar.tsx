@@ -40,13 +40,13 @@ export function Toolbar({ menus, onRun, onPause, onStep, onStop }: ToolbarProps)
       <div className="ml-auto flex items-center gap-1">
         {onPause ? (
           <ToolbarButton title="Pause (F5)" onClick={onPause}>
-            <svg viewBox="0 0 16 16" className="size-4 fill-imp-arith" aria-hidden="true">
+            <svg viewBox="0 0 16 16" className="size-4 fill-warning" aria-hidden="true">
               <path d="M4 3h3v10H4zM9 3h3v10H9z" />
             </svg>
           </ToolbarButton>
         ) : (
           <ToolbarButton title="Run (F5)" onClick={onRun}>
-            <svg viewBox="0 0 16 16" className="size-4 fill-imp-flow" aria-hidden="true">
+            <svg viewBox="0 0 16 16" className="size-4 fill-success" aria-hidden="true">
               <path d="M4 2.5v11l9-5.5z" />
             </svg>
           </ToolbarButton>
@@ -57,7 +57,7 @@ export function Toolbar({ menus, onRun, onPause, onStep, onStop }: ToolbarProps)
           </svg>
         </ToolbarButton>
         <ToolbarButton title="Stop (Shift+F5)" onClick={onStop}>
-          <svg viewBox="0 0 16 16" className="size-4 fill-imp-io" aria-hidden="true">
+          <svg viewBox="0 0 16 16" className="size-4 fill-error" aria-hidden="true">
             <path d="M3 3h10v10H3z" />
           </svg>
         </ToolbarButton>

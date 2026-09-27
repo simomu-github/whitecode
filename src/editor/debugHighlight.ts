@@ -37,10 +37,14 @@ export const debugExtensions: Extension = [
   highlightField,
   readOnly.of(EditorState.readOnly.of(false)),
   EditorView.baseTheme({
-    ".cm-debugCurrentLine": { backgroundColor: "rgba(255, 204, 0, 0.12)" },
-    ".cm-debugCurrent": { backgroundColor: "rgba(255, 204, 0, 0.45)" },
-    ".cm-debugErrorLine": { backgroundColor: "rgba(240, 106, 106, 0.12)" },
-    ".cm-debugError": { backgroundColor: "rgba(240, 106, 106, 0.5)" },
+    ".cm-debugCurrentLine": {
+      backgroundColor: "color-mix(in srgb, var(--color-debug-current) 8%, transparent)",
+    },
+    ".cm-debugCurrent": {
+      backgroundColor: "color-mix(in srgb, var(--color-debug-current) 45%, transparent)",
+    },
+    ".cm-debugErrorLine": { backgroundColor: "color-mix(in srgb, var(--color-error) 12%, transparent)" },
+    ".cm-debugError": { backgroundColor: "color-mix(in srgb, var(--color-error) 50%, transparent)" },
   }),
 ];
 

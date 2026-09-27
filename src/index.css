@@ -16,10 +16,18 @@
   --color-accent: #007acc;
 
   --color-imp-stack: #4fa3ff;
-  --color-imp-arith: #f0a040;
+  --color-imp-arith: #3ec9c9;
   --color-imp-heap: #b180f0;
   --color-imp-flow: #4ec98f;
-  --color-imp-io: #f06a6a;
+  --color-imp-io: #ef7ac8;
+
+  /* Keep clear of the IMP category hues so the current instruction stands out from them. */
+  --color-debug-current: #ffcc00;
+
+  /* Status colors for UI chrome (toolbar icons, messages), kept apart from the IMP category colors. */
+  --color-success: #4ec98f;
+  --color-warning: #f0a040;
+  --color-error: #f06a6a;
 }
 
 html,

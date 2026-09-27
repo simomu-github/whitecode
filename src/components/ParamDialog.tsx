@@ -65,7 +65,7 @@ export function ParamDialog({ instruction, onSubmit, onCancel }: ParamDialogProp
           {result.ok ? (
             <TokenSequence tokens={result.tokens} />
           ) : (
-            input.trim() !== "" && <span className="text-imp-io">{result.error}</span>
+            input.trim() !== "" && <span className="text-error">{result.error}</span>
           )}
         </div>
 
