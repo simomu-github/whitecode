@@ -31,6 +31,7 @@ Writing Whitespace by hand normally means typing invisible characters and hoping
 
 - [Node.js](https://nodejs.org/) 26.8.2 or later (a `.node-version` file is provided for [nodenv](https://github.com/nodenv/nodenv) users)
 - [pnpm](https://pnpm.io/), enabled via [Corepack](https://nodejs.org/api/corepack.html):
+
   ```sh
   npm i -g corepack
   corepack enable pnpm
