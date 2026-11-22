@@ -13,6 +13,8 @@ type AppState = {
   /** `null` while the document has never been saved. */
   filePath: string | null;
   isDirty: boolean;
+  /** Offered by Save As for a document that has never been saved, e.g. an opened example. */
+  suggestedFileName: string | null;
 
   debugStatus: DebugStatus;
   snapshot: VMSnapshot | null;
@@ -30,6 +32,7 @@ type AppState = {
 export const useAppStore = create<AppState>(() => ({
   filePath: null,
   isDirty: false,
+  suggestedFileName: null,
 
   debugStatus: "idle",
   snapshot: null,

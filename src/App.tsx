@@ -17,7 +17,8 @@ import { removeAllBreakpoints, toggleBreakpointAtCursor } from "./editor/breakpo
 import { Editor } from "./editor/Editor";
 import * as edit from "./editor/editCommands";
 import { insertInstruction } from "./editor/insert";
-import { confirmUnsavedChanges, newFile, openFile, saveFile, saveFileAs } from "./file/fileActions";
+import { examples } from "./examples/examples";
+import { confirmUnsavedChanges, newFile, openExample, openFile, saveFile, saveFileAs } from "./file/fileActions";
 import { type DebugStatus, fileNameOf, isSessionActive, useAppStore } from "./store";
 import {
   MAX_EDITOR_FONT_SIZE,
@@ -58,10 +59,13 @@ function App() {
   const toggleBreakpoint = withView(toggleBreakpointAtCursor);
   const removeBreakpoints = withView(removeAllBreakpoints);
 
-  const runFileAction = async (action: (view: EditorView) => Promise<void>) => {
+  const runFileAction = async (
+    action: (view: EditorView) => Promise<void>,
+    replacesDocument = action === newFile || action === openFile,
+  ) => {
     if (!editorViewRef.current) return;
     // Replacing the document would leave the session pointing at stale source positions.
-    if (action === newFile || action === openFile) debug.stop();
+    if (replacesDocument) debug.stop();
     try {
       await action(editorViewRef.current);
     } catch (error) {
@@ -88,6 +92,14 @@ function App() {
       items: [
         { label: "New File", shortcut: "Ctrl+N", onClick: () => runFileAction(newFile) },
         { label: "Open File...", shortcut: "Ctrl+O", onClick: () => runFileAction(openFile) },
+        null,
+        {
+          label: "Open Example",
+          submenu: examples.map((example) => ({
+            label: example.name,
+            onClick: () => runFileAction(openExample(example), true),
+          })),
+        },
         null,
         { label: "Save", shortcut: "Ctrl+S", onClick: () => runFileAction(saveFile) },
         { label: "Save As...", shortcut: "Ctrl+Shift+S", onClick: () => runFileAction(saveFileAs) },
