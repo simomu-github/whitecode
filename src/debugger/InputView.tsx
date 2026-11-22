@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { formatShortcut } from "../shortcuts";
 import { isSessionActive, useAppStore } from "../store";
 import { editInput, sendEof } from "./session";
 
@@ -53,7 +54,7 @@ export function InputView() {
           type="button"
           onClick={sendEof}
           disabled={!interactive}
-          title="Signal end of input (Ctrl+D)"
+          title={`Signal end of input (${formatShortcut("Ctrl+D")})`}
           className="px-2 py-0.5 text-xs hover:bg-hover disabled:opacity-50 disabled:hover:bg-transparent"
         >
           EOF

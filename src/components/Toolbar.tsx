@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 // Shared with the app bundle so the in-app icon always matches the window/taskbar icon.
 // import appIcon from "../../src-tauri/icons/64x64.png";
+import { formatShortcut } from "../shortcuts";
 import { type Menu, MenuBar } from "./MenuBar";
 
 type ToolbarButtonProps = {
@@ -60,7 +61,7 @@ export function Toolbar({ menus, onRun, onPause, onStep, onStop }: ToolbarProps)
             <path d="M2 3h2v10H2zM6 3v10l8-5z" />
           </svg>
         </ToolbarButton>
-        <ToolbarButton title="Stop (Shift+F5)" onClick={onStop}>
+        <ToolbarButton title={`Stop (${formatShortcut("Shift+F5")})`} onClick={onStop}>
           <svg viewBox="0 0 16 16" className="size-4 fill-error" aria-hidden="true">
             <path d="M3 3h10v10H3z" />
           </svg>
