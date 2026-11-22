@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { formatShortcut } from "../shortcuts";
 
 export type MenuItem = {
   label: string;
+  /** Written Windows-style ("Ctrl+Shift+S"); shown with macOS symbols on a Mac. */
   shortcut?: string;
   /** Omitted renders the item disabled. */
   onClick?: () => void;
@@ -190,7 +192,7 @@ export function MenuBar({ menus }: { menus: Menu[] }) {
                       </span>
                       {item.label}
                     </span>
-                    {item.shortcut && <span className="text-xs opacity-70">{item.shortcut}</span>}
+                    {item.shortcut && <span className="text-xs opacity-70">{formatShortcut(item.shortcut)}</span>}
                   </button>
                 ) : (
                   // biome-ignore lint/suspicious/noArrayIndexKey: separators have no identity

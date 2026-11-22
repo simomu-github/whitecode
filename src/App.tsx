@@ -18,6 +18,7 @@ import { Editor } from "./editor/Editor";
 import * as edit from "./editor/editCommands";
 import { insertInstruction } from "./editor/insert";
 import { confirmUnsavedChanges, newFile, openFile, saveFile, saveFileAs } from "./file/fileActions";
+import { isMac } from "./shortcuts";
 import { type DebugStatus, fileNameOf, isSessionActive, useAppStore } from "./store";
 import {
   MAX_EDITOR_FONT_SIZE,
@@ -101,7 +102,8 @@ function App() {
       mnemonic: "e",
       items: [
         { label: "Undo", shortcut: "Ctrl+Z", onClick: whenEditable(runEditAction(edit.undo)) },
-        { label: "Redo", shortcut: "Ctrl+Y", onClick: whenEditable(runEditAction(edit.redo)) },
+        // Matches CodeMirror's historyKeymap, which binds Cmd+Shift+Z instead of Cmd+Y on macOS.
+        { label: "Redo", shortcut: isMac ? "Ctrl+Shift+Z" : "Ctrl+Y", onClick: whenEditable(runEditAction(edit.redo)) },
         null,
         { label: "Cut", shortcut: "Ctrl+X", onClick: whenEditable(runEditAction(edit.cut)) },
         { label: "Copy", shortcut: "Ctrl+C", onClick: runEditAction(edit.copy) },
