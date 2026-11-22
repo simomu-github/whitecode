@@ -2,6 +2,7 @@ import type { EditorView } from "@codemirror/view";
 import { message, open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { resetDocument } from "../editor/Editor";
+import type { Example } from "../examples/examples";
 import { fileNameOf, useAppStore } from "../store";
 
 const filters = [
@@ -32,7 +33,7 @@ export async function confirmUnsavedChanges(view: EditorView): Promise<boolean> 
 export async function newFile(view: EditorView) {
   if (!(await confirmUnsavedChanges(view))) return;
   resetDocument(view, "");
-  useAppStore.setState({ filePath: null, isDirty: false });
+  useAppStore.setState({ filePath: null, isDirty: false, suggestedFileName: null });
 }
 
 export async function openFile(view: EditorView) {
@@ -41,15 +42,22 @@ export async function openFile(view: EditorView) {
   if (path === null) return;
   const text = await readTextFile(path);
   resetDocument(view, text);
-  useAppStore.setState({ filePath: path, isDirty: false });
+  useAppStore.setState({ filePath: path, isDirty: false, suggestedFileName: null });
 }
 
+/** Opens an example as a new, unsaved document, so saving it never overwrites anything by surprise. */
+export const openExample = (example: Example) => async (view: EditorView) => {
+  if (!(await confirmUnsavedChanges(view))) return;
+  resetDocument(view, example.source);
+  useAppStore.setState({ filePath: null, isDirty: false, suggestedFileName: example.fileName });
+};
+
 export async function saveFileAs(view: EditorView) {
-  const current = useAppStore.getState().filePath;
-  const path = await save({ filters, defaultPath: current ?? "untitled.ws" });
+  const { filePath: current, suggestedFileName } = useAppStore.getState();
+  const path = await save({ filters, defaultPath: current ?? suggestedFileName ?? "untitled.ws" });
   if (path === null) return;
   await writeTextFile(path, view.state.doc.toString());
-  useAppStore.setState({ filePath: path, isDirty: false });
+  useAppStore.setState({ filePath: path, isDirty: false, suggestedFileName: null });
 }
 
 export async function saveFile(view: EditorView) {
