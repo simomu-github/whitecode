@@ -7,7 +7,16 @@ import type { VMSnapshot } from "./whitespace/vm";
  */
 export type DebugStatus = "idle" | "paused" | "running" | "waitingForInput" | "halted" | "error" | "stopped";
 
-export type DiagnosticMessage = { from: number; to: number; line: number; column: number; message: string };
+/** A source range together with the 1-based line and column of its start. */
+export type SourceLocation = { from: number; to: number; line: number; column: number };
+
+export type DiagnosticMessage = SourceLocation & { message: string };
+
+/** A call frame of the last snapshot; `label` is `null` for the main frame and `at` while past the end. */
+export type CallFrameView = { label: string | null; at: SourceLocation | null };
+
+/** Frames beyond this are counted but not listed, so deep recursion stays responsive. */
+export const MAX_LISTED_CALL_FRAMES = 1000;
 
 type AppState = {
   /** `null` while the document has never been saved. */
@@ -16,6 +25,8 @@ type AppState = {
 
   debugStatus: DebugStatus;
   snapshot: VMSnapshot | null;
+  /** Innermost first, at most `MAX_LISTED_CALL_FRAMES`; the snapshot's `callStack` has the full depth. */
+  callFrames: CallFrameView[];
   /** Parse errors or the runtime error of the last session. */
   diagnostics: DiagnosticMessage[];
   /**
@@ -33,6 +44,7 @@ export const useAppStore = create<AppState>(() => ({
 
   debugStatus: "idle",
   snapshot: null,
+  callFrames: [],
   diagnostics: [],
   presetInput: "",
   interactiveInputSent: null,

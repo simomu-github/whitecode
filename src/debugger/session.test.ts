@@ -10,6 +10,7 @@ import {
 } from "../editor/breakpoints";
 import { editorExtensions } from "../editor/extensions";
 import { useAppStore } from "../store";
+import { parse } from "../whitespace/parser";
 import { type AsmLine, asm } from "../whitespace/testing";
 import * as debug from "./session";
 
@@ -40,6 +41,7 @@ beforeEach(() => {
   useAppStore.setState({
     debugStatus: "idle",
     snapshot: null,
+    callFrames: [],
     diagnostics: [],
     presetInput: "",
     interactiveInputSent: null,
@@ -96,6 +98,34 @@ describe("debug session", () => {
     debug.stop();
     expect(state().debugStatus).toBe("stopped");
     expect(view.state.readOnly).toBe(false);
+  });
+
+  it("publishes the call frames with their editor positions", () => {
+    const source = asm([["call", "S"], ["end"], ["mark", "S"], ["push", 1n], ["ret"]]);
+    // A leading comment shifts every instruction, so frames must be located in the editor's document.
+    const comment = "main";
+    load(comment + source);
+    const at = (index: number) => {
+      const from = parse(source).instructions[index].from + comment.length;
+      const to = parse(source).instructions[index].to + comment.length;
+      const line = view.state.doc.lineAt(from);
+      return { from, to, line: line.number, column: from - line.from + 1 };
+    };
+
+    debug.step(view);
+    expect(state().callFrames).toEqual([{ label: null, at: at(0) }]);
+    debug.step(view);
+    debug.step(view);
+    expect(state().callFrames).toEqual([
+      { label: "S", at: at(3) },
+      { label: null, at: at(0) },
+    ]);
+
+    debug.stop();
+    expect(state().callFrames).toHaveLength(2);
+    debug.run(view);
+    expect(state().debugStatus).toBe("halted");
+    expect(state().callFrames).toEqual([{ label: null, at: at(1) }]);
   });
 
   describe("input", () => {

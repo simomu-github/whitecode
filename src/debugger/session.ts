@@ -1,10 +1,11 @@
 import type { EditorView } from "@codemirror/view";
 import { breakpointLines } from "../editor/breakpoints";
 import { setReadOnly, showHighlight } from "../editor/debugHighlight";
-import { type DiagnosticMessage, useAppStore } from "../store";
+import { type CallFrameView, MAX_LISTED_CALL_FRAMES, type SourceLocation, useAppStore } from "../store";
 import { parse, type SourceRange } from "../whitespace/parser";
 import { VM } from "../whitespace/vm";
 import { instructionsAtLines } from "./breakpointMapping";
+import { callFrames } from "./callFrames";
 
 /** Instructions per batch while running; the UI is updated between batches. */
 const RUN_BATCH_SIZE = 10_000;
@@ -13,10 +14,18 @@ type Session = { vm: VM; view: EditorView; running: boolean; timer?: ReturnType<
 
 let session: Session | null = null;
 
-const toDiagnostic = (view: EditorView, { from, to }: SourceRange, message: string): DiagnosticMessage => {
+const locate = (view: EditorView, { from, to }: SourceRange): SourceLocation => {
   const line = view.state.doc.lineAt(from);
-  return { from, to, line: line.number, column: from - line.from + 1, message };
+  return { from, to, line: line.number, column: from - line.from + 1 };
 };
+
+const toDiagnostic = (view: EditorView, range: SourceRange, message: string) => ({ ...locate(view, range), message });
+
+const callFramesOf = ({ vm, view }: Session): CallFrameView[] =>
+  callFrames(vm.program, vm.pc, vm.callStack, MAX_LISTED_CALL_FRAMES).map(({ label, at }) => ({
+    label,
+    at: at && locate(view, at),
+  }));
 
 /** Read on every batch, so breakpoints toggled during a session take effect immediately. */
 const breakpointsOf = (s: Session) => instructionsAtLines(s.vm.program.instructions, breakpointLines(s.view.state));
@@ -27,6 +36,7 @@ function start(view: EditorView): Session | null {
     useAppStore.setState({
       debugStatus: "error",
       snapshot: null,
+      callFrames: [],
       diagnostics: program.errors.map((e) => toDiagnostic(view, e, e.message)),
     });
     showHighlight(view, { ...program.errors[0], kind: "error" });
@@ -57,6 +67,7 @@ function end(s: Session) {
 function publish(s: Session) {
   const { vm, view } = s;
   const snapshot = vm.snapshot();
+  const frames = callFramesOf(s);
 
   if (vm.status === "halted" || vm.status === "error") {
     end(s);
@@ -64,6 +75,7 @@ function publish(s: Session) {
     useAppStore.setState({
       debugStatus: vm.status,
       snapshot,
+      callFrames: frames,
       diagnostics: vm.error && failed ? [toDiagnostic(view, failed, vm.error.message)] : [],
     });
     showHighlight(view, failed ? { from: failed.from, to: failed.to, kind: "error" } : null);
@@ -71,7 +83,7 @@ function publish(s: Session) {
   }
 
   const debugStatus = vm.status === "waitingForInput" ? "waitingForInput" : s.running ? "running" : "paused";
-  useAppStore.setState({ debugStatus, snapshot });
+  useAppStore.setState({ debugStatus, snapshot, callFrames: frames });
   const current = vm.currentInstruction;
   showHighlight(view, current ? { from: current.from, to: current.to, kind: "current" } : null);
 }
@@ -122,7 +134,7 @@ export function stop() {
   if (!session) return;
   const s = session;
   end(s);
-  useAppStore.setState({ debugStatus: "stopped", snapshot: s.vm.snapshot() });
+  useAppStore.setState({ debugStatus: "stopped", snapshot: s.vm.snapshot(), callFrames: callFramesOf(s) });
   showHighlight(s.view, null);
 }
 

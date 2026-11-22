@@ -105,7 +105,7 @@ function decodeNumber(bits: string): bigint {
   return bits[0] === "T" ? -magnitude : magnitude;
 }
 
-const formatLabel = (label: string) => (label === "" ? "(empty label)" : `"${label}"`);
+export const formatLabel = (label: string) => (label === "" ? "(empty label)" : `"${label}"`);
 
 function checkLabels(program: Program) {
   program.instructions.forEach((ins, index) => {
