@@ -11,7 +11,7 @@ import { ResizeHandle } from "./components/ResizeHandle";
 import { Toolbar } from "./components/Toolbar";
 import { InputView } from "./debugger/InputView";
 import { OutputView } from "./debugger/OutputView";
-import { HeapView, StackView } from "./debugger/StateViews";
+import { CallStackView, HeapView, StackView } from "./debugger/StateViews";
 import * as debug from "./debugger/session";
 import { removeAllBreakpoints, toggleBreakpointAtCursor } from "./editor/breakpoints";
 import { Editor } from "./editor/Editor";
@@ -57,6 +57,13 @@ function App() {
   const restart = withView(debug.restart);
   const toggleBreakpoint = withView(toggleBreakpointAtCursor);
   const removeBreakpoints = withView(removeAllBreakpoints);
+
+  const selectRange = (from: number, to: number) => {
+    const view = editorViewRef.current;
+    if (!view) return;
+    view.dispatch({ selection: { anchor: from, head: to }, scrollIntoView: true });
+    view.focus();
+  };
 
   const runFileAction = async (action: (view: EditorView) => Promise<void>) => {
     if (!editorViewRef.current) return;
@@ -255,14 +262,7 @@ function App() {
                 <ResizeHandle orientation="horizontal" />
                 <Panel id="output" minSize="15%">
                   <Pane title="Output">
-                    <OutputView
-                      onSelectRange={(from, to) => {
-                        const view = editorViewRef.current;
-                        if (!view) return;
-                        view.dispatch({ selection: { anchor: from, head: to }, scrollIntoView: true });
-                        view.focus();
-                      }}
-                    />
+                    <OutputView onSelectRange={selectRange} />
                   </Pane>
                 </Panel>
               </Group>
@@ -283,6 +283,12 @@ function App() {
             <Panel id="heap" minSize="15%">
               <Pane title="Heap">
                 <HeapView />
+              </Pane>
+            </Panel>
+            <ResizeHandle orientation="vertical" />
+            <Panel id="callStack" minSize="15%">
+              <Pane title="Call Stack">
+                <CallStackView onSelectRange={selectRange} />
               </Pane>
             </Panel>
           </Group>
