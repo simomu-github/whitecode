@@ -27,7 +27,7 @@ describe("View settings in the editor", () => {
     const expectApplied = () => {
       expect(view().contentDOM.querySelector(".cm-imp")).toBeNull();
       expect(view().dom.classList).toContain("cm-hideWhitespace");
-      expect(view().dom.style.getPropertyValue("--editor-font-size")).toBe("20px");
+      expect(getComputedStyle(view().scrollDOM).fontSize).toBe("20px");
     };
     expectApplied();
 

@@ -1,4 +1,4 @@
-import { Compartment, EditorState } from "@codemirror/state";
+import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { type RefObject, useEffect, useRef } from "react";
 import { useAppStore } from "../store";
@@ -15,12 +15,24 @@ const dirtyTracker = EditorView.updateListener.of((update) => {
 // CodeMirror rewrites the root element's class and style attributes itself (e.g. on focus changes),
 // so the View settings live in the editor state (a compartment) rather than being applied to the DOM directly.
 const viewSettings = new Compartment();
+
+// The font size goes in a theme rather than an inline style: CodeMirror re-measures line heights when the
+// theme changes, but not when only an attribute does. Without that, a short document (whose content element
+// keeps its min-height) left the line numbers at the old line height after zooming.
+const fontSizeThemes = new Map<number, Extension>();
+const fontSizeTheme = (size: number) => {
+  let theme = fontSizeThemes.get(size);
+  if (!theme) {
+    theme = EditorView.theme({ ".cm-scroller": { fontSize: `${size}px` } });
+    fontSizeThemes.set(size, theme);
+  }
+  return theme;
+};
+
 const viewSettingsExtension = ({ impColors, whitespaceSymbols, editorFontSize }: ViewSettings) => [
   impColorsEnabled.of(impColors),
-  EditorView.editorAttributes.of({
-    class: whitespaceSymbols ? "" : "cm-hideWhitespace",
-    style: `--editor-font-size: ${editorFontSize}px`,
-  }),
+  EditorView.editorAttributes.of({ class: whitespaceSymbols ? "" : "cm-hideWhitespace" }),
+  fontSizeTheme(editorFontSize),
 ];
 
 const createState = (doc: string) =>
@@ -58,8 +70,6 @@ export function Editor({ viewRef }: EditorProps) {
     const view = viewRef.current;
     if (!view) return;
     view.dispatch({ effects: viewSettings.reconfigure(viewSettingsExtension(settings)) });
-    // A font size change alters line heights, which CodeMirror only picks up on measuring.
-    view.requestMeasure();
   }, [viewRef, settings]);
 
   return <div ref={containerRef} className="h-full" />;
